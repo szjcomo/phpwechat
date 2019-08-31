@@ -1,0 +1,29 @@
+{
+    "name": "szjcomo/phpwechat",
+    "description": "微信sdk包",
+    "type": "library",
+    "require": {
+        "php": ">=5.6.0",
+        "szjcomo/phputils": "^0.0.2",
+	"szjcomo/szjcore": "^0.0.9"
+    },
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "como",
+            "email": "814655481@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.phpcomposer.com"
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "szjcomo\\phpwechat\\": "src/"
+        }
+    }
+}

@@ -4,8 +4,7 @@
     "type": "library",
     "require": {
         "php": ">=5.6.0",
-        "szjcomo/phputils": "^0.0.2",
-	"szjcomo/szjcore": "^0.0.9"
+        "szjcomo/phputils": "^0.0.2"
     },
     "license": "Apache-2.0",
     "authors": [

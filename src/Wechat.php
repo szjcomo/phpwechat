@@ -33,6 +33,14 @@ use szjcomo\phputils\Tools;
  * 素材管理类
  */
 use szjcomo\phpwechat\media\Manager as mediaManager;
+/**
+ * 用户管理
+ */
+use szjcomo\phpwechat\user\User as wxUser;
+/**
+ * 数据管理
+ */
+use szjcomo\phpwechat\data\DataCount as wxData;
 
 /**
  * 微信sdk类
@@ -62,6 +70,7 @@ Class Wechat{
 	Protected const MSGTYPE_VOICE		= 'voice';
 	Protected const MSGTYPE_VIDEO		= 'video';
 	Protected const MSGTYPE_SHORTVIDEO	= 'shortvideo';
+	Protected const MSGTYPE_SZJKF		= 'transfer_customer_service';
 	/**
 	 * [checkSignature 验证微信通信签名函数]
 	 * @Author    como
@@ -93,15 +102,15 @@ Class Wechat{
 	static function start(&$context){
 		try{
 			$xmlStr = $context->put();
-			libxml_disable_entity_loader(true);
 			if (!empty($xmlStr)) {
-				$xmlObj =  @simplexml_load_string($xmlStr, 'SimpleXMLElement', LIBXML_NOCDATA | LIBXML_NOBLANKS);
-				$data = json_decode(json_encode($xmlObj),true);
+				$data = Tools::xmlToArray($xmlStr);
+				if(isset($data['err']))
+					return $data;
 				return Tools::appResult('SUCCESS',$data,false);
 			} else {
 				return Tools::appResult(WechatError::getError('-100002'));
 			}
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
 	}
@@ -126,7 +135,7 @@ Class Wechat{
 			} else {
 				return self::replyText('温馨提示：对不起,指定的回调函数不存在',$reqData);
 			}
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			return self::replyText($err->getMessage());
 		}
 	}
@@ -158,10 +167,13 @@ Class Wechat{
 				case self::MSGTYPE_VIDEO:
 					$result = self::replyVideo($info['data'],$reqData);
 					break;
+				case self::MSGTYPE_SZJKF:
+					$result = self::replyKefu($info['data'],$reqData);
+					break;
 				default:
 					$result = self::replyText('系统提醒：对不起,暂未查询相关的回复消息',$reqData);
 			}			
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			$result = slef::replyText($err->getMessage(),$reqData);
 		}
 		return $result;
@@ -179,7 +191,7 @@ Class Wechat{
 			$url = sprintf(self::WeixinHOST.self::GetCallBackIpURL,$access_token);
 			$res = Tools::curl_get($url,[],$debug);
 			return self::responseHandler($res);
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
 	}
@@ -191,11 +203,319 @@ Class Wechat{
 	 * @param    string|null              $secret [description]
 	 * @return   [type]                           [description]
 	 */
-	static function getAccessToken(string $appid = null,string $secret = null):array
+	static function getAccessToken(string $appid,string $secret,$debug = false):array
 	{
 		try{
-			return AccessToken::getAccessToken($appid,$secret,self::WeixinHOST);
-		} catch(\Exception $err){
+			return AccessToken::getAccessToken($appid,$secret,self::WeixinHOST,$debug);
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
+	}
+	/**
+	 * [customer 微信客服管理接口]
+	 * @author szjcomo
+	 * @DateTime 2019-09-06T19:12:49+0800
+	 * @param    string                   $access_token [description]
+	 * @param    array                    $data         [description]
+	 * @param    string                   $type         [description]
+	 * @param    boolean                  $debug        [description]
+	 * @return   [type]                                 [description]
+	 */
+	static function customer(string $access_token,array $data = [],$type = 'list',$debug = false):array
+	{
+		try{
+			$host = str_replace('cgi-bin/', '', self::WeixinHOST);
+			switch ($type) {
+				case 'list':
+					$result = WechatCustomer::GetCustomerList($access_token,self::WeixinHOST,$debug);
+					break;
+				case 'add':
+					$result = WechatCustomer::AddCustomer($access_token,$data,$host,$debug);
+					break;
+				case 'save':
+					$result = WechatCustomer::SaveCustomer($access_token,$data,$host,$debug);
+					break;
+				case 'inv':
+					$result = WechatCustomer::InvitationCustomer($access_token,$data,$host,$debug);
+					break;
+				case 'headimg':
+					$result = WechatCustomer::UploadHeadImage($access_token,$data,$host,$debug);
+					break;
+				case 'del':
+					$result = WechatCustomer::DelCustomer($access_token,$data,$host,$debug);
+					break;
+				case 'message':
+					$result = WechatCustomer::SendMessage($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				default:
+					$result = Tools::appResult('ERROR');
+					break;
+			}
+			return $result;
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
+	}
+	/**
+	 * [ai 微信ai功能]
+	 * @author szjcomo
+	 * @DateTime 2019-09-06T18:50:16+0800
+	 * @param    string                   $access_token [description]
+	 * @param    string                   $filename     [description]
+	 * @param    string                   $type         [description]
+	 * @param    boolean                  $debug        [description]
+	 * @return   [type]                                 [description]
+	 */
+	static function ai(string $access_token,string $filename,$type = 'idcard',$debug = false):array
+	{
+		try{
+			$host = str_replace('cgi-bin/', '', self::WeixinHOST);
+			switch ($type) {
+				case 'idcard':
+					$result = WechatAi::IdCardInfo($access_token,$filename,$host,$debug);
+					break;
+				case 'bank':
+					$result = WechatAi::BankCardInfo($access_token,$filename,$host,$debug);
+					break;
+				case 'driv':
+					$result = WechatAi::DrivingInfo($access_token,$filename,$host,$debug);
+					break;
+				case 'travel':
+					$result = WechatAi::DrivingLicenseInfo($access_token,$filename,$host,$debug);
+					break;
+				case 'biz':
+					$result = WechatAi::BizlicenseInfo($access_token,$filename,$host,$debug);
+					break;
+				default:
+					$result = Tools::appResult('ERROR');
+					break;
+			}
+			return $result;
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
+	}
+
+
+	/**
+	 * [web 微信网页开发]
+	 * @author szjcomo
+	 * @DateTime 2019-09-06T16:53:26+0800
+	 * @param    string                   $args1 [description]
+	 * @param    string                   $args2 [description]
+	 * @param    array                    $args3 [description]
+	 * @param    string                   $type  [description]
+	 * @return   [type]                          [description]
+	 */
+	static function web(string $args1,string $args2,$type = 'web',$args3 = [],$args4 = [],$debug = false):array
+	{
+		try{
+			$host = str_replace('cgi-bin/', '', self::WeixinHOST);
+			switch ($type) {
+				case 'token':
+					$result = WechatWeb::AuthAccessToken($args1,$args2,$args3,$host,$debug);
+					break;
+				case 'refresh':
+					$result = WechatWeb::RefreshToken($args1,$args2,$host,$debug);
+					break;
+				case 'info':
+					$result = WechatWeb::GetUserInfo($args1,$args2,$host,$debug);
+					break;
+				case 'check':
+					$result = WechatWeb::CheckToken($args1,$args2,$host,$debug);
+					break;
+				case 'ticket':
+					$result = WechatWeb::getJsApiTicket($args1,self::WeixinHOST,$debug);
+					break;
+				case 'sign':
+					$result = WechatWeb::getJsSdkSign($args1,$args2,$args3,$args4,$debug);
+					break;
+				default:
+					$result = Tools::appResult('ERROR');
+					break;
+			}
+			return $result;
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
+	}
+
+
+	/**
+	 * [qrcode 二维码操作]
+	 * @author szjcomo
+	 * @DateTime 2019-09-06T10:45:58+0800
+	 * @param    string                   $params [description]
+	 * @param    array                    $data   [description]
+	 * @param    string                   $type   [description]
+	 * @param    boolean                  $debug  [description]
+	 * @return   [type]                           [description]
+	 */
+	static function qrcode(string $params,$data = [],$type = 'get',$debug = false):?array
+	{
+		try{
+			switch ($type) {
+				case 'tmp':
+					if(isset($data['action_info']['scene']['scene_id'])){
+						$options = ['action_name'=>'QR_SCENE'];
+					} else {
+						$options = ['action_name'=>'QR_STR_SCENE'];
+					}
+					$result = WechatQrcode::CreateQrcode($params,array_merge($options,$data),self::WeixinHOST,$debug);
+					break;
+				case 'long':
+					if(isset($data['action_info']['scene']['scene_id'])){
+						$options = ['action_name'=>'QR_LIMIT_SCENE'];
+					} else {
+						$options = ['action_name'=>'QR_LIMIT_STR_SCENE'];
+					}
+					$result = WechatQrcode::CreateQrcode($params,array_merge($options,$data),self::WeixinHOST,$debug);
+					break;
+				case 'url':
+					$result = WechatQrcode::toShortUrl($params,$data,self::WeixinHOST,$debug);
+					break;
+				default:
+					$result = WechatQrcode::ShowQrcode($params,$data,self::WeixinHOST,$debug);
+					break;
+			}
+			return $result;
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
+	}
+
+	/**
+	 * [data 数据统计接口]
+	 * @author szjcomo
+	 * @DateTime 2019-09-05T19:53:29+0800
+	 * @param    string                   $access_token [description]
+	 * @param    array                    $data         [description]
+	 * @param    string                   $type         [description]
+	 * @param    boolean                  $debug        [description]
+	 * @return   [type]                                 [description]
+	 */
+	static function data(string $access_token,array $data = [],string $type = 'user',$debug = false):array
+	{
+		try{
+			$host = str_replace('cgi-bin/', '', self::WeixinHOST);
+			switch ($type) {
+				case 'user':
+					$result = wxData::GetUserCountData($access_token,$data,$host,$debug);
+					break;
+				case 'usertime':
+					$result = wxData::GetUserTimeData($access_token,$data,$host,$debug);
+					break;
+				case 'newstime':
+					$result = wxData::GetTodayNewsData($access_token,$data,$host,$debug);
+					break;
+				case 'news':
+					$result = wxData::GetNewsData($access_token,$data,$host,$debug);
+					break;
+				case 'total':
+					$result = wxData::GetTotalNewsData($access_token,$data,$host,$debug);
+					break;
+				case 'hour':
+					$result = wxData::GetHourNewsData($access_token,$data,$host,$debug);
+					break;
+				case 'share':
+					$result = wxData::GetShareNewsData($access_token,$data,$host,$debug);
+					break;
+				case 'hourshare':
+					$result = wxData::GetShareHourNewsURL($access_token,$data,$host,$debug);
+					break;
+				case 'message':
+					$result = wxData::GetMessageCountData($access_token,$data,$host,$debug);
+					break;
+				case 'messagehour':
+					$result = wxData::GetMessageHourData($access_token,$data,$host,$debug);
+					break;
+				case 'messageweek':
+					$result = wxData::GetMessageWeekData($access_token,$data,$host,$debug);
+					break;
+				case 'messagemonth':
+					$result = wxData::GetMessageMonthData($access_token,$data,$host,$debug);
+					break;
+				case 'messagedist':
+					$result = wxData::GetMessageDistData($access_token,$data,$host,$debug);
+					break;
+				case 'messageweekdist':
+					$result = wxData::GetMessageWeekDistData($access_token,$data,$host,$debug);
+					break;
+				case 'messagemonthdist':
+					$result = wxData::GetMessageMonthDistData($access_token,$data,$host,$debug);
+					break;
+				case 'interface':
+					$result = wxData::GetInterfaceData($access_token,$data,$host,$debug);
+					break;
+				case 'interfacehour':
+					$result = wxData::GetInterfaceHourData($access_token,$data,$host,$debug);
+					break;
+				default:
+					$result = Tools::appResult('ERROR');
+					break;
+			}
+			return $result;
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
+	}
+
+	/**
+	 * [user 用户管理]
+	 * @author szjcomo
+	 * @DateTime 2019-09-05T15:40:41+0800
+	 * @param    string                   $access_token [description]
+	 * @param    [type]                   $data         [description]
+	 * @param    string                   $type         [description]
+	 * @param    boolean                  $debug        [description]
+	 * @return   [type]                                 [description]
+	 */
+	static function user(string $access_token,$data = null,$type = 'list',$debug = false):array
+	{
+		try{
+			switch ($type) {
+				case 'tags':
+					$result = wxUser::GetUserTags($access_token,self::WeixinHOST,$debug);
+					break;
+				case 'addtag':
+					$result = wxUser::AddUserTags($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				case 'savetag':
+					$result = wxUser::SaveUserTags($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				case 'deltag':
+					$result = wxUser::DelUserTag($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				case 'usertag':
+					$result = wxUser::GetTagUsersList($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				case 'batchtag':
+					$result = wxUser::BatchUserTags($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				case 'canceltag':
+					$result = wxUser::BatchCancelTags($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				case 'taguser':
+					$result = wxUser::GetUserTagList($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				case 'info':
+					if(is_array($data)){
+						$tmp = [];
+						foreach($data as $key=>$val){$tmp[] = ['openid'=>$val,'lang'=>'zh_CN'];}
+						$result = wxUser::BatchUserInfo($access_token,$tmp,self::WeixinHOST,$debug);
+					} elseif(is_string($data)){
+						$result = wxUser::UserInfo($access_token,$data,self::WeixinHOST,$debug);
+					}
+					break;
+				case 'list':
+					$result = wxUser::GetUserList($access_token,$data,self::WeixinHOST,$debug);
+					break;
+				default:
+					$result = Tools::appResult('ERROR');
+					break;
+			}
+			return $result;
+		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
 	}
@@ -233,7 +553,7 @@ Class Wechat{
 					$result = Tools::appResult('ERROR');
 					break;
 			}
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			$result = Tools::appResult($err->getMessage());
 		}
 		return $result;
@@ -267,7 +587,7 @@ Class Wechat{
 					break;
 			}
 			return $result;
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
 	}
@@ -315,7 +635,7 @@ Class Wechat{
 					break;
 			}
 			return $result;
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
 	}
@@ -461,6 +781,20 @@ Class Wechat{
 		$options = ['Video'=>self::toUcField($data)];
 		return self::arrayToXml(self::baseReplyMessage($reqData,self::MSGTYPE_VIDEO,$options));
 	}
+	/**
+	 * [replyKefu 接入客服功能]
+	 * @author szjcomo
+	 * @DateTime 2019-09-07T15:20:37+0800
+	 * @param    array                    $data    [description]
+	 * @param    array                    $reqData [description]
+	 * @return   [type]                            [description]
+	 */
+	static function replyKefu(string $account,array $reqData = []):string
+	{
+		$options = ['TransInfo'=>['KfAccount'=>$account]];
+		return self::arrayToXml(self::baseReplyMessage($reqData,self::MSGTYPE_SZJKF,$options));
+	}
+
 	/**
 	 * [baseReplyMessage 通用的消息回复机制]
 	 * @author szjcomo

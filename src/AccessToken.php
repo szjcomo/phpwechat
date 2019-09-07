@@ -33,6 +33,7 @@ use szjcomo\phputils\Tools;
  * 获取access_token类
  */
 Class AccessToken {
+	use Reshandler;
 	/**
 	 * 获取access_token值
 	 */
@@ -46,20 +47,11 @@ Class AccessToken {
 	 * @param    string|null              $host   [description]
 	 * @return   [type]                           [description]
 	 */
-	static function getAccessToken(string $appid = null,string $secret = null,string $host = null,$debug = false):array
+	static function getAccessToken(string $appid,string $secret ,string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::AccessTokenURL,$appid,$secret);
-			$res = Tools::curl_get($url,[],$debug);
-			if(empty($res)) return Tools::appResult(WechatError::getError('-100001'));
-			$data = json_decode($res,true);
-			if(empty($data)) return Tools::appResult(WechatError::getError('-100002'));
-			if(isset($data['errcode']) && !empty($data['errcode']))
-				return Tools::appResult(WechatError::getError($data['errcode']),null,true,$data['errcode']);
-			return Tools::appResult('SUCCESS',$data,false);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::AccessTokenURL,$appid,$secret);
+		return self::GetManger($url,$debug);
 	}
+
 }
 

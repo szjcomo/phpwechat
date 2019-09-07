@@ -30,81 +30,77 @@
 namespace szjcomo\phpwechat;
 use szjcomo\phputils\Tools;
 /**
- * 微信自定义菜单类操作
+ * 二维码功能
  */
-Class Menu {
-
+Class WechatQrcode {
 	use Reshandler;
 	/**
-	 * 创建自定义菜单接口
+	 * 创建二维码请求
 	 */
-	Protected const AddMenuURL 			= 'menu/create?access_token=%s';
+	Protected const AddQrcodeURL 		= 'qrcode/create?access_token=%s';
 	/**
-	 * 查询自定义菜单接口
+	 * 通过ticket换取二维码
 	 */
-	Protected const findMenuURL			= 'menu/get?access_token=%s';
+	Protected const GetQrcodeURL 		= 'cgi-bin/showqrcode?ticket=%s';
 	/**
-	 * 删除自定义菜单接口
+	 * 长链接转短链接
 	 */
-	Protected const DelMenuURL 			= 'menu/delete?access_token=%s';
+	Protected const GetLongToShortURL 	= 'shorturl?access_token=%s';
 	/**
-	 * 获取自定义菜单配置接口
-	 */
-	Protected const GetMenuConfigURL    = 'get_current_selfmenu_info?access_token=%s';
-	/**
-	 * [addCurMenu 添加自定义菜单]
+	 * [toShortUrl 长链接转短链接]
 	 * @author szjcomo
-	 * @DateTime 2019-09-06T11:06:42+0800
+	 * @DateTime 2019-09-06T15:21:39+0800
+	 * @param    string                   $access_token [description]
+	 * @param    string                   $url          [description]
+	 * @param    string                   $host         [description]
+	 * @param    boolean                  $debug        [description]
+	 * @return   [type]                                 [description]
+	 */
+	static function toShortUrl(string $access_token,string $longurl,string $host,$debug = false):array
+	{
+		$url = sprintf($host.self::GetLongToShortURL,$access_token);
+		return self::PostManger($url,json_encode(['action'=>'long2short','long_url'=>$longurl],JSON_UNESCAPED_UNICODE),$debug);
+	}
+	/**
+	 * [CreateQrcode 创建二维码功能]
+	 * @author szjcomo
+	 * @DateTime 2019-09-06T10:21:12+0800
 	 * @param    string                   $access_token [description]
 	 * @param    array                    $data         [description]
 	 * @param    string                   $host         [description]
 	 * @param    boolean                  $debug        [description]
 	 */
-	static function addCurMenu(string $access_token,array $data,string $host,$debug = false):array
+	static function CreateQrcode(string $access_token,array $data = [],string $host,$debug = false):array
 	{
-		$url = sprintf($host.self::AddMenuURL,$access_token);
+		$url = sprintf($host.self::AddQrcodeURL,$access_token);
 		return self::PostManger($url,json_encode($data,JSON_UNESCAPED_UNICODE),$debug);
 	}
 	/**
-	 * [findMenu 查询自定义菜单接口]
+	 * [ShowQrcode 下载qrcode图片]
 	 * @author szjcomo
-	 * @DateTime 2019-09-06T11:06:54+0800
-	 * @param    string                   $access_token [description]
-	 * @param    string                   $host         [description]
-	 * @param    boolean                  $debug        [description]
-	 * @return   [type]                                 [description]
+	 * @DateTime 2019-09-06T10:29:12+0800
+	 * @param    string                   $ticket   [description]
+	 * @param    string|null              $savePath [description]
+	 * @param    string                   $host     [description]
+	 * @param    boolean                  $debug    [description]
 	 */
-	static function findMenu(string $access_token,string $host,$debug = false):array
+	static function ShowQrcode(string $ticket,string $savePath = null,string $host,$debug = false)
 	{
-		$url = sprintf($host.self::findMenuURL,$access_token);
-		return self::GetManger($url,$debug);
-	}
-	/**
-	 * [delMenu 删除自定义菜单]
-	 * @author szjcomo
-	 * @DateTime 2019-09-06T11:07:08+0800
-	 * @param    string                   $access_token [description]
-	 * @param    string                   $host         [description]
-	 * @param    boolean                  $debug        [description]
-	 * @return   [type]                                 [description]
-	 */
-	static function delMenu(string $access_token,string $host,$debug = false):array
-	{
-		$url = sprintf($host.self::DelMenuURL,$access_token,[],$debug);
-		return self::GetManger($url,$debug);
-	}
-	/**
-	 * [getMenuConfig 获取自定义菜单配置接口]
-	 * @author szjcomo
-	 * @DateTime 2019-09-06T11:07:18+0800
-	 * @param    string                   $access_token [description]
-	 * @param    string                   $host         [description]
-	 * @param    boolean                  $debug        [description]
-	 * @return   [type]                                 [description]
-	 */
-	static function getMenuConfig(string $access_token,string $host,$debug = false):array
-	{
-		$url = sprintf($host.self::GetMenuConfigURL,$access_token);
-		return self::GetManger($url,$debug);
+		try{
+			$url = sprintf($host.self::GetQrcodeURL,$ticket);
+			$res = Tools::curl_get($url,[],$debug);
+			if(empty($savePath)) return $res;
+			$tmp = json_decode($res,true);
+			if(empty($tmp)){
+				$dir = dirname($savePath);
+				$action = Tools::createDirectory($dir) && Tools::createFile($savePath,$res);
+				if(empty($action)) return Tools::appResult('ERROR');
+				return Tools::appResult('SUCCESS',$savePath,false);					
+			} else {
+				return Tools::appResult(WechatError::getError($tmp['errcode']));
+			}
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
 	}
 }

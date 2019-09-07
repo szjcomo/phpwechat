@@ -70,16 +70,10 @@ Class WechatMessage {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function sendTemplate(string $access_token = null,array $data = [],string $host = null,$debug = false):array
+	static function sendTemplate(string $access_token,array $data = [],string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::SendTemplateURL,$access_token);
-			$json = json_encode($data,JSON_UNESCAPED_UNICODE);
-			$res = Tools::curl_post($url,$json,[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::SendTemplateURL,$access_token);
+		return self::PostManger($url,json_encode($data,JSON_UNESCAPED_UNICODE),$debug);
 	}
 	/**
 	 * [delTemplate 删除模版]
@@ -91,15 +85,10 @@ Class WechatMessage {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function delTemplate(string $access_token = null,string $id = null,string $host = null,$debug = false):array
+	static function delTemplate(string $access_token,string $id,string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::DelTemplateURL,$access_token);
-			$res = Tools::curl_post($url,json_encode(['template_id'=>$id],JSON_UNESCAPED_UNICODE),[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::DelTemplateURL,$access_token);
+		return self::PostManger($url,json_encode(['template_id'=>$id],JSON_UNESCAPED_UNICODE),$debug);
 	}
 	/**
 	 * [getTemplateList 获取模版列表]
@@ -109,15 +98,10 @@ Class WechatMessage {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function getTemplateList(string $access_token = null,string $host = null,$debug = false):array
+	static function getTemplateList(string $access_token,string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::TemplateListURL,$access_token);
-			$res = Tools::curl_get($url,[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::TemplateListURL,$access_token);
+		return self::GetManger($url,$debug);
 	}
 	/**
 	 * [getIndustryInfo 获取所属行业详情]
@@ -128,15 +112,10 @@ Class WechatMessage {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function getIndustryInfo(string $access_token = null,string $host = null,$debug = false):array
+	static function getIndustryInfo(string $access_token,string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::GetIndustryURL,$access_token);
-			$res = Tools::curl_get($url,[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::GetIndustryURL,$access_token);
+		return self::GetManger($url,$debug);
 	}
 	/**
 	 * [getTemplateInfo 获取模版详情]
@@ -148,18 +127,10 @@ Class WechatMessage {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function getTemplateInfo(string $access_token = null,string $id = null,string $host = null,$debug = false):array
+	static function getTemplateInfo(string $access_token,string $id,string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::TemplateInfoURL,$access_token);
-			$res = Tools::curl_post($url,json_encode(['template_id'=>$id],JSON_UNESCAPED_UNICODE),[],$debug);
-			print_r($res);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::TemplateInfoURL,$access_token);
+		return self::PostManger($url,json_encode(['template_id'=>$id],JSON_UNESCAPED_UNICODE),$debug);
 	}
-
-
 
 }

@@ -89,15 +89,10 @@ Class Manager {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function getMaterCount(string $access_token = null,string $host = null,$debug = false):array
+	static function getMaterCount(string $access_token,string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::GetMaterialCountURL,$access_token);
-			$res = Tools::curl_get($url,[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::GetMaterialCountURL,$access_token);
+		return self::GetManger($url,$debug);
 	}
 	/**
 	 * [addMaterialNews 新增图文素材]
@@ -108,24 +103,17 @@ Class Manager {
 	 * @param    string|null              $host         [description]
 	 * @param    boolean                  $debug        [description]
 	 */
-	static function addMaterialNews(string $access_token = null,array $data = [],string $host = null,$debug = false):array
+	static function addMaterialNews(string $access_token,array $data = [],string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::AddMaterialNewsURL,$access_token);
-			$baseOptions = [
-				'author'=>'szjcomo','digest'=>'这是一个测试的图文消息内容','show_cover_pic'=>true,
-				'content_source_url'=>'http://www.sizhijie.com','need_open_comment'=>0,'only_fans_can_comment'=>1
-			];
-			$articles = [];
-			foreach($data as $key=>$val){
-				$articles[$key] = array_merge($baseOptions,$val);
-			}
-			$options = ['articles'=>$articles];
-			$res = Tools::curl_post($url,json_encode($options,JSON_UNESCAPED_UNICODE),[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::AddMaterialNewsURL,$access_token);
+		$baseOptions = [
+			'author'=>'szjcomo','digest'=>'这是一个测试的图文消息内容','show_cover_pic'=>true,
+			'content_source_url'=>'http://www.sizhijie.com','need_open_comment'=>0,'only_fans_can_comment'=>1
+		];
+		$articles = [];
+		foreach($data as $key=>$val){$articles[$key] = array_merge($baseOptions,$val);}
+		$options = ['articles'=>$articles];
+		return self::PostManger($url,json_encode($options,JSON_UNESCAPED_UNICODE),$debug);
 	}
 	/**
 	 * [updateMaterialNews 更新永久图文素材]
@@ -137,20 +125,15 @@ Class Manager {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function updateMaterialNews(string $access_token = null,array $data = [],string $host = null,$debug = false):array
+	static function updateMaterialNews(string $access_token,array $data = [],string $host,$debug = false):array
 	{
-		try{
-			$url = sprintf($host.self::UpdateNewsMaterialURL,$access_token);
-			$baseOptions = [
-				'author'=>'szjcomo','digest'=>'这是一个测试的图文消息内容','show_cover_pic'=>true,
-				'content_source_url'=>'http://www.sizhijie.com','need_open_comment'=>0,'only_fans_can_comment'=>1
-			];
-			$data['articles'] = array_merge($baseOptions,$data['articles']);
-			$res = Tools::curl_post($url,json_encode($data,JSON_UNESCAPED_UNICODE),[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::UpdateNewsMaterialURL,$access_token);
+		$baseOptions = [
+			'author'=>'szjcomo','digest'=>'这是一个测试的图文消息内容','show_cover_pic'=>true,
+			'content_source_url'=>'http://www.sizhijie.com','need_open_comment'=>0,'only_fans_can_comment'=>1
+		];
+		$data['articles'] = array_merge($baseOptions,$data['articles']);
+		return self::PostManger($url,json_encode($data,JSON_UNESCAPED_UNICODE),$debug);
 	}
 
 	/**
@@ -163,17 +146,11 @@ Class Manager {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function deleteMaterial(string $access_token = null,array $data = [],string $host = null,$debug = false) :array
+	static function deleteMaterial(string $access_token,array $data = [],string $host,$debug = false) :array
 	{
-		try{
-			$url = sprintf($host.self::DelMaterialURL,$access_token);
-			$res = Tools::curl_post($url,json_encode($data),[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$url = sprintf($host.self::DelMaterialURL,$access_token);
+		return self::PostManger($url,json_encode($data,JSON_UNESCAPED_UNICODE),$debug);
 	}
-
 
 	/**
 	 * [getMaterList 获取永久素材列表]
@@ -184,16 +161,11 @@ Class Manager {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function getMaterList(string $access_token = null,array $data = [],string $host = null,$debug = false):array
+	static function getMaterList(string $access_token,array $data = [],string $host,$debug = false):array
 	{
-		try{
-			$map = array_merge(['type'=>'image','offset'=>0,'count'=>19],$data);
-			$url = sprintf($host.self::GetMaterialListURL,$access_token);
-			$res = Tools::curl_post($url,json_encode($map),[],$debug);
-			return self::responseHandler($res);
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
-		}
+		$map = array_merge(['type'=>'image','offset'=>0,'count'=>19],$data);
+		$url = sprintf($host.self::GetMaterialListURL,$access_token);
+		return self::PostManger($url,json_encode($map,JSON_UNESCAPED_UNICODE),$debug);
 	}
 	/**
 	 * [addTempUpload 上传临时素材]
@@ -204,20 +176,15 @@ Class Manager {
 	 * @param    string|null              $host         [description]
 	 * @param    boolean                  $debug        [description]
 	 */
-	static function addTempUpload(string $access_token = null,array $data = [],string $host = null,$debug = false):array
+	static function addTempUpload(string $access_token,array $data = [],string $host,$debug = false):array
 	{
-		try{
-			$type = isset($data['type'])?$data['type']:'image';
-			$url = sprintf($host.self::AddTempUploadURL,$access_token,$type);
-			if(isset($data['filename']) && file_exists($data['filename'])){
-				$media = self::addUploadOptions($data['filename']);
-				$res = Tools::curl_post($url,$media,[],$debug);
-				return self::responseHandler($res);
-			} else {
-				return Tools::appResult('需要上传的文件不存在');
-			}
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
+		$type = isset($data['type'])?$data['type']:'image';
+		$url = sprintf($host.self::AddTempUploadURL,$access_token,$type);
+		if(isset($data['filename']) && file_exists($data['filename'])){
+			$media = self::addUploadOptions($data['filename']);
+			return self::PostManger($url,$media,$debug);
+		} else {
+			return Tools::appResult('需要上传的文件不存在');
 		}
 	}
 	/**
@@ -231,18 +198,13 @@ Class Manager {
 	 */
 	static function addMaterial(string $access_token = null,array $data = [],string $host = null,$debug = false):array
 	{
-		try{
-			$type = isset($data['type'])?$data['type']:'image';
-			$url = sprintf($host.self::AddMaterialUploadURL,$access_token,$type);
-			if(isset($data['filename']) && file_exists($data['filename'])){
-				$media = self::addUploadOptions($data['filename']);
-				$res = Tools::curl_post($url,$media,[],$debug);
-				return self::responseHandler($res);
-			} else {
-				return Tools::appResult('需要上传的文件不存在');
-			}
-		} catch(\Exception $err){
-			return Tools::appResult($err->getMessage());
+		$type = isset($data['type'])?$data['type']:'image';
+		$url = sprintf($host.self::AddMaterialUploadURL,$access_token,$type);
+		if(isset($data['filename']) && file_exists($data['filename'])){
+			$media = self::addUploadOptions($data['filename']);
+			return self::PostManger($url,$media,$debug);
+		} else {
+			return Tools::appResult('需要上传的文件不存在');
 		}
 	}
 	/**
@@ -255,7 +217,7 @@ Class Manager {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function getTempUpload(string $access_token = null,array $data = [],string $host = null,$debug = false):array
+	static function getTempUpload(string $access_token,array $data = [],string $host,$debug = false):array
 	{
 		try{
 			$url = sprintf($host.self::GetTempUploadURL,$access_token,$data['media_id']);
@@ -267,7 +229,7 @@ Class Manager {
 			} else {
 				return Tools::appResult('请输入需要保存的文件名');
 			}
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
 	}
@@ -281,7 +243,7 @@ Class Manager {
 	 * @param    boolean                  $debug        [description]
 	 * @return   [type]                                 [description]
 	 */
-	static function getMaterial(string $access_token = null,array $data = [],string $host = null,$debug = false):array
+	static function getMaterial(string $access_token,array $data = [],string $host,$debug = false):array
 	{
 		try{
 			$url = sprintf($host.self::GetMaterialURL,$access_token);
@@ -293,7 +255,7 @@ Class Manager {
 			} else {
 				return Tools::appResult('请输入需要保存的文件名');
 			}
-		} catch(\Exception $err){
+		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
 	}
@@ -304,12 +266,12 @@ Class Manager {
 	 * @DateTime 2019-09-02T18:53:01+0800
 	 * @param    string                   $fileName [description]
 	 */
-	static function addUploadOptions(string $fileName = ''):array
+	static function addUploadOptions(string $fileName = '',$name = 'media'):array
 	{
 		if (class_exists('\CURLFile')) {
-			$data = array('media' => new \CURLFile(realpath($fileName)));
+			$data = array($name => new \CURLFile(realpath($fileName)));
 		} else {
-			$data = array('media' => '@' . realpath($filename));
+			$data = array($name => '@' . realpath($filename));
 		}
 		return $data;
 	}

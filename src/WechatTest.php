@@ -44,6 +44,243 @@ $access_token = 'xxx';
  */
 $result = Wechat::getWeixinIpList($access_token);
 
+// ==============================微信AI接口====================================
+/**
+ * 身份证识别
+ */
+$res = Wechat::ai($access_token,'xxx.jpg','idcard');
+/**
+ * 营业执照识别
+ */
+$res = Wechat::ai($access_token,'xxx.jpg','biz');
+
+
+// ==============================客服管理接口====================================
+/**
+ * 获取公众号客服列表
+ */
+$res = Wechat::customer($access_token);
+/**
+ * 添加一个客服
+ */
+// $data = ['kf_account'=>'szj@xxx','nickname'=>'思智捷罗生'];
+$res = Wechat::customer($access_token,$data,'add');
+/**
+ * 更新客服信息
+ */
+// $data = ['kf_account'=>'szj@xxx','nickname'=>'szjcomo'];
+$res = Wechat::customer($access_token,$data,'save');
+/**
+ * 邀请客服人员
+ */
+// $data = ['kf_account'=>'szj@xxx','invite_wx'=>'xxx'];
+$res = Wechat::customer($access_token,$data,'inv');
+/**
+ * 设置客服头像
+ */
+// $data = ['account'=>'szj@l15219840108','filename'=>'headimg.jpg'];
+$res = Wechat::customer($access_token,$data,'headimg');
+/**
+ * 删除一个客服账号
+ */
+// $data = ['account'=>'szj@l15219840108'];
+$res = Wechat::customer($access_token,$data,'del');
+/**
+ * 发送客服消息接口
+ */
+$data = [
+	'touser'=>'okXHRwVqk39baIntOSADkiFLSNNQ','msgtype'=>'text',
+	'text'=>['content'=>'消息内容']
+];
+$res = Wechat::customer($access_token,$data,'message');
+
+// ==============================微信网页开发接口====================================
+
+$code = 'xxx';
+$appid = 'xxx';
+$secret = 'xxx';
+/**
+ * 获取用户授权的access_token 和用户的openid 以及 refresh_token
+ */
+$result = Wechat::web($appid,$secret,'token',$code);
+/**
+ * 获取用户详细信息 此处的access_token是用户授权后获取的access_token 并非公众号的那个access_token
+ */
+$openid = 'oSF4duIAfTLdEMukzNOpYPAuJxEo'; 
+$access_token = 'xxx';
+$result = Wechat::web($access_token,$openid,'info');
+/**
+ * 检测用户授权的access_token是否过期
+ */
+$result = Wechat::web($access_token,$openid,'check');
+/**
+ * 刷新获取用户授权的access_token
+ */
+$refresh_token = 'xxx';
+$result = bWechat::web($appid,$refresh_token,'refresh');
+/**
+ * 获取jssdk需要的ticket 此处的access_token 是公众号获取的不是个人授权的那个
+ */
+$access_token = 'xxx';
+$result = Wechat::web($access_token,'','ticket');
+/**
+ * 获取jssdk签名
+ */
+$ticket = 'xxx';
+$result = baseWechat::web($appid,$ticket,'sign','http://xxx.sizhijie.com/');
+
+
+// ==============================二维码接口====================================
+/**
+ * 获取永久二维码
+ */
+$data = ['action_info'=>['scene'=>['scene_str'=>'szjcomo']]];
+$res = Wechat::qrcode($access_token,$data,'long');
+/**
+ * 获取临时二维码
+ */
+$data = ['action_info'=>['scene'=>['scene_id'=>456]]];
+$res = Wechat::qrcode($access_token,$data,'tmp');
+/**
+ * 下载二维码
+ */
+$ticket = 'xxx';
+$savepath = './xxx.jpg';
+$res = Wechat::qrcode($ticket,$savepath,'get');
+/**
+ * 长链接转短链接
+ */
+$res = Wechat::qrcode($access_token,'https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1443433600','url');
+
+// ==============================数据统计接口====================================
+/**
+ * 获取用户总数
+ */
+$res = Wechat::data($access_token);
+/**
+ * 获取指定时间段时用户总数
+ */
+// $data = ['begin_date'=>'xxx-xx-xx','end_date'=>'xxxx-xx-xx'];
+$data = [];
+$res = Wechat::data($access_token,$data,'usertime');
+/**
+ * 获取指定日期推送的图文信息
+ */
+// $data = ['begin_date'=>'xxx-xx-xx','end_date'=>'xxxx-xx-xx'];
+$data = [];
+$res = baseWechat::data($access_token,$data,'newstime');
+/**
+ * 获取图文群发每日数据
+ */
+// $data = ['begin_date'=>'xxx-xx-xx','end_date'=>'xxxx-xx-xx'];
+$data = [];
+$res = baseWechat::data($access_token,$data,'newstime');
+/**
+ * 获取图文群发总数据
+ */
+// $data = ['begin_date'=>'xxx-xx-xx','end_date'=>'xxxx-xx-xx'];
+$data = [];
+$res = Wechat::data($access_token,$data,'news');
+/**
+ * 获取图文统计数据 $data = 同上
+ */
+$res = Wechat::data($access_token,$data,'total');
+/**
+ * 获取图文统计分时数据 $data = 同上
+ */
+$res = Wechat::data($access_token,$data,'hour');
+/**
+ * 获取图文分享转发数据 $data = 同上
+ */
+$res = Wechat::data($access_token,$data,'share');
+/**
+ * 获取图文分享转发分时数据 $data = 同上
+ */
+$res = Wechat::data($access_token,$data,'hourshare');
+/**
+ * 获取消息发送概况数据 $data = 同上
+ */
+$res = Wechat::data($access_token,[],'message');
+/**
+ * 获取消息分送分时数据 $data = 同上
+ */
+$res = Wechat::data($access_token,[],'messagehour');
+/**
+ * 获取消息发送周数据 $data = 同上
+ */
+$res = Wechat::data($access_token,[],'messageweek');
+/**
+ * 获取消息发送月数据 $data = 同上
+ */
+$res = Wechat::data($access_token,[],'messagemonth');
+/**
+ * 获取消息发送分布数据 $data = 同上
+ */
+$res = Wechat::data($access_token,[],'messagedist');
+/**
+ * 获取消息发送分布周数据 $data = 同上
+ */
+$res = Wechat::data($access_token,[],'messageweekdist');
+/**
+ * 获取消息发送分布月数据 $data = 同上
+ */
+$res = Wechat::data($access_token,[],'messagemonthdist');
+/**
+ * 获取接口分析数据
+ */
+$res = baseWechat::data($access_token,[],'interface');
+/**
+ * 获取接口分析分时数据
+ */
+$res = baseWechat::data($access_token,[],'interfacehour');
+
+// ==============================用户管理接口====================================
+/**
+ * 获取标签列表
+ */
+$res = Wechat::user($access_token,null,'tags');
+/**
+ * 添加标签
+ */
+$res = Wechat::user($access_token,['name'=>'忠实粉丝'],'addtag');
+/**
+ * 编辑标签
+ */
+$res = Wechat::user($access_token,['id'=>100,'name'=>'老铁'],'savetag');
+/**
+ * 删除标签
+ */
+$res = Wechat::user($access_token,['id'=>100],'deltag');
+/**
+ * 获取标签下用户列表
+ */
+$res = Wechat::user($access_token,['tagid'=>2],'usertag');
+/**
+ * 批量给用户打标签
+ */
+$res = Wechat::user($access_token,['openid_list'=>['oSF4duGdMCd4q-kthyYjwCQl8DHI','oSF4duAEZkskbPmuKXbFQB2_RyzM'],'tagid'=>2],'batchtag');
+/**
+ * 批量取消用户标签
+ */
+$res = Wechat::user($access_token,['openid_list'=>['oSF4duGdMCd4q-kthyYjwCQl8DHI','oSF4duAEZkskbPmuKXbFQB2_RyzM'],'tagid'=>2],'canceltag');
+/**
+ * 获取用户标签列表
+ */
+$res = Wechat::user($access_token,['openid'=>'oSF4duIAfTLdEMukzNOpYPAuJxEo'],'taguser');
+/**
+ * 获取单用户基本信息
+ */
+$res = Wechat::user($access_token,'oSF4duIAfTLdEMukzNOpYPAuJxEo','info');
+/**
+ * 获取多用户基本信息
+ */
+$res = Wechat::user($access_token,['oSF4duIAfTLdEMukzNOpYPAuJxEo','oSF4duIAfTLdEMukzNOpYPAuJxEo'],'info');
+/**
+ * 获取公众号用户列表
+ */
+$openid = '';//不填默认从头开始拉取
+$res = Wechat::user($access_token,$openid);
+
 // ==============================素材管理接口====================================
 /**
  * 获取永久素材列表

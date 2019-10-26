@@ -394,7 +394,7 @@ $data = [
         "pagepath"=>"pages/lunar/index"
     ],  */
 	"data"=>[
-		'name'=>['value'=>'罗生','color'=>'#173177'],
+		'name'=>['value'=>'罗勇','color'=>'#173177'],
 		'remark'=>['value'=>'皮鞋100元','color'=>'#ff0000']
 	]
 ];

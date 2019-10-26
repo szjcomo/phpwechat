@@ -29,6 +29,7 @@
 namespace szjcomo\phpwechat\media;
 use szjcomo\phputils\Tools;
 use szjcomo\phpwechat\Reshandler;
+use Swoole\Coroutine;
 
 /**
  * 微信素材管理
@@ -202,6 +203,9 @@ Class Manager {
 		$url = sprintf($host.self::AddMaterialUploadURL,$access_token,$type);
 		if(isset($data['filename']) && file_exists($data['filename'])){
 			$media = self::addUploadOptions($data['filename']);
+			if($data['type'] == 'video'){
+				$media['description'] = urldecode(json_encode($data['description']));
+			}
 			return self::PostManger($url,$media,$debug);
 		} else {
 			return Tools::appResult('需要上传的文件不存在');
@@ -271,7 +275,7 @@ Class Manager {
 		if (class_exists('\CURLFile')) {
 			$data = array($name => new \CURLFile(realpath($fileName)));
 		} else {
-			$data = array($name => '@' . realpath($filename));
+			$data = array($name => '@' . realpath($fileName));
 		}
 		return $data;
 	}

@@ -88,4 +88,11 @@ $data = [
 	'media_id'=>'xxx',
 	'index'=>0
 ];
+
+//新增视频素材注意事项
+/**
+ * 新增永久素材信息 必须为这种格式
+ */
+$result = Wechat::material($access_token,['type'=>'video','filename'=>'public/456.mp4','description'=>['title'=>'xxx','introduction'=>'xxx']],'add');
+
 $result = baseWechat::material($access_token,$data,'savenews');

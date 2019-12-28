@@ -205,7 +205,6 @@ Class Manager {
 			$media = self::addUploadOptions($data['filename']);
 			if($data['type'] == 'video'){
 				$media['description'] = urldecode(json_encode($data['description']));
-				$media['title'] = urldecode(json_encode($data['title']));
 			}
 			return self::PostManger($url,$media,$debug);
 		} else {

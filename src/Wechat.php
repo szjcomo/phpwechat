@@ -56,6 +56,10 @@ Class Wechat{
 	 * 获取微信服务器可用IP
 	 */
 	Protected const GetCallBackIpURL 	= 'getcallbackip?access_token=%s';
+	/**
+	 * 清除素材api调用次数
+	 */
+	protected const ClearQuotaURL 		= 'clear_quota?access_token=%s';
 
 	/**
 	 * 定义消息类型
@@ -207,6 +211,23 @@ Class Wechat{
 	{
 		try{
 			return AccessToken::getAccessToken($appid,$secret,self::WeixinHOST,$debug);
+		} catch(\Throwable $err){
+			return Tools::appResult($err->getMessage());
+		}
+	}
+	/**
+	 * [clearQuota 清除微信素材调用次数限制]
+	 * @author 	   szjcomo
+	 * @createTime 2019-12-28
+	 * @param      string     $access_token [description]
+	 * @return     [type]                   [description]
+	 */
+	static function clearQuota(string $access_token)
+	{
+		try{
+			$url = sprintf(self::WeixinHOST.self::ClearQuotaURL,$access_token);
+			$res = Tools::curl_get($url,[],$debug);
+			return self::responseHandler($res);
 		} catch(\Throwable $err){
 			return Tools::appResult($err->getMessage());
 		}
